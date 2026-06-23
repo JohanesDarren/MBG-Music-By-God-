@@ -18,7 +18,26 @@ import {
 import { useMediaPlayer } from "../contexts/MediaPlayerContext";
 
 export default function PlaybackConsole() {
-  const { isPlaying, togglePlay, currentTime, duration, seek, volume, changeVolume, playbackRate, setSpeed, pitchShift, setPitch } = useMediaPlayer();
+  const {
+    isPlaying,
+    togglePlay,
+    currentTime,
+    duration,
+    seek,
+    volume,
+    changeVolume,
+    playbackRate,
+    setSpeed,
+    pitchShift,
+    setPitch,
+    trackVolumes,
+    handleVolumeChange,
+    stems,
+    isProcessingStems,
+    processAudioWithAI,
+    trackMutes,
+    toggleTrackMute,
+  } = useMediaPlayer();
 
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
@@ -84,19 +103,68 @@ export default function PlaybackConsole() {
         {activeTool === "split" && (
           <div className="flex flex-col gap-4 animate-slide-in-up">
             <h4 className="text-xs tracking-widest text-brand-purple uppercase mb-2 text-center">Track Splitter Mixer</h4>
-            <div className="flex justify-around items-center h-40">
-              {["Vocals", "Drums", "Bass", "Melody"].map((track, i) => (
-                <div key={track} className="flex flex-col items-center gap-4 h-full">
-                  <div className="w-2 h-full bg-white/10 rounded-full relative group cursor-pointer overflow-hidden">
-                    <div 
-                      className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-brand-indigo to-brand-purple rounded-full group-hover:brightness-125 transition-all"
-                      style={{ height: `${[80, 60, 40, 90][i]}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400">{track}</span>
+            
+            {isProcessingStems ? (
+              <div className="flex flex-col items-center justify-center h-48 gap-4">
+                <div className="w-16 h-16 relative flex items-center justify-center">
+                  <div className="absolute w-full h-full border-4 border-brand-purple/20 rounded-full animate-ping"></div>
+                  <div className="absolute w-full h-full border-4 border-t-brand-purple border-r-brand-indigo border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                  <Wand2 size={24} className="text-brand-purple animate-pulse" />
                 </div>
-              ))}
-            </div>
+                <p className="text-xs text-slate-400 max-w-[200px] text-center leading-relaxed">
+                  Processing mathematical HPSS separation...
+                </p>
+              </div>
+            ) : !stems.harmonic ? (
+              <div className="flex items-center justify-center h-48">
+                <button
+                  onClick={processAudioWithAI}
+                  className="px-6 py-3 rounded-full bg-gradient-to-r from-brand-indigo to-brand-purple text-white font-medium tracking-wide shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:shadow-[0_0_30px_rgba(139,92,246,0.6)] hover:scale-105 transition-all flex items-center gap-2"
+                >
+                  <Wand2 size={18} />
+                  Separate Tracks (HPSS)
+                </button>
+              </div>
+            ) : (
+              <div className="flex justify-around items-center h-48 max-w-sm mx-auto">
+                {[
+                  { key: "percussive", label: "BEAT (Percussive)" },
+                  { key: "harmonic", label: "MELODY (Harmonic)" }
+                ].map(({ key, label }) => {
+                  const typedKey = key as "percussive" | "harmonic";
+                  const vol = trackVolumes[typedKey];
+                  const isMuted = trackMutes[typedKey];
+                  
+                  return (
+                    <div key={key} className="flex flex-col items-center gap-3 h-full">
+                      <div className="w-8 h-28 relative flex justify-center items-center">
+                        <input
+                          type="range"
+                          min="0"
+                          max="2"
+                          step="0.05"
+                          value={vol}
+                          onChange={(e) => handleVolumeChange(typedKey, parseFloat(e.target.value))}
+                          className={`absolute top-1/2 left-1/2 w-24 h-1 -translate-x-1/2 -translate-y-1/2 -rotate-90 appearance-none bg-white/10 rounded-full outline-none cursor-pointer
+                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand-purple [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(168,85,247,0.8)]
+                            hover:[&::-webkit-slider-thumb]:scale-125 hover:[&::-webkit-slider-thumb]:brightness-125 [&::-webkit-slider-thumb]:transition-all ${isMuted ? 'opacity-50 grayscale' : ''}`}
+                        />
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <button 
+                          onClick={() => toggleTrackMute(typedKey)}
+                          className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold transition-all ${isMuted ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+                        >
+                          M
+                        </button>
+                        <span className="text-[10px] uppercase tracking-wider text-slate-400">{label}</span>
+                        <span className="text-[9px] font-mono text-brand-purple mt-0.5">{vol.toFixed(1)}x</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

@@ -37,7 +37,8 @@ export default function MediaInjector({ onFileSelect }: MediaInjectorProps) {
 
   const processFile = (file: File) => {
     // Only accept audio/video
-    if (file.type.startsWith("audio/") || file.type.startsWith("video/")) {
+    const validExtensions = /\.(wav|mp3|mp4|m4a|aac|ogg|flac|wma|webm|mkv|avi|mov)$/i;
+    if (file.type.startsWith("audio/") || file.type.startsWith("video/") || validExtensions.test(file.name)) {
       const url = URL.createObjectURL(file);
       onFileSelect(file, url);
     } else {
@@ -68,13 +69,13 @@ export default function MediaInjector({ onFileSelect }: MediaInjectorProps) {
           Drag and drop your track or video here, or click to browse.
           <br />
           <span className="text-xs mt-2 block opacity-70">
-            Supports .mp3, .wav, .mp4
+            Supports .mp3, .wav, .mp4 and any other sound/video files
           </span>
         </p>
         <input
           type="file"
           className="hidden"
-          accept="audio/*,video/*"
+          accept="audio/*,video/*,.wav,.mp3,.mp4,.m4a,.aac,.ogg,.flac,.wma,.webm,.mkv,.avi,.mov"
           ref={fileInputRef}
           onChange={handleFileChange}
         />

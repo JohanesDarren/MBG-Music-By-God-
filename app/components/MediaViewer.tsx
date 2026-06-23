@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Activity } from "lucide-react";
 import { useMediaPlayer } from "../contexts/MediaPlayerContext";
 
@@ -10,7 +11,17 @@ interface MediaViewerProps {
 
 export default function MediaViewer({ file, url }: MediaViewerProps) {
   const isVideo = file.type.startsWith("video/");
-  const { mediaRef, isPlaying } = useMediaPlayer();
+  const { mediaRef, isPlaying, setSourceFile } = useMediaPlayer();
+
+  const lastProcessedFile = useRef<File | null>(null);
+  
+  // Store the original File object in the context so the HPSS processor can access it
+  useEffect(() => {
+    if (lastProcessedFile.current !== file) {
+      lastProcessedFile.current = file;
+      setSourceFile(file);
+    }
+  }, [file, setSourceFile]);
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-8 z-10 relative flex flex-col items-center">

@@ -13,7 +13,8 @@ export default function CompactInjector({ onFileSelect }: CompactInjectorProps) 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      if (file.type.startsWith("audio/") || file.type.startsWith("video/")) {
+      const validExtensions = /\.(wav|mp3|mp4|m4a|aac|ogg|flac|wma|webm|mkv|avi|mov)$/i;
+      if (file.type.startsWith("audio/") || file.type.startsWith("video/") || validExtensions.test(file.name)) {
         const url = URL.createObjectURL(file);
         onFileSelect(file, url);
       } else {
@@ -36,7 +37,7 @@ export default function CompactInjector({ onFileSelect }: CompactInjectorProps) 
       <input
         type="file"
         className="hidden"
-        accept="audio/*,video/*"
+        accept="audio/*,video/*,.wav,.mp3,.mp4,.m4a,.aac,.ogg,.flac,.wma,.webm,.mkv,.avi,.mov"
         ref={fileInputRef}
         onChange={handleFileChange}
       />
